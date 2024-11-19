@@ -196,6 +196,15 @@ jobs:
         with:
           name: packages-windows
           path: syncthing-windows-*.zip
+          
+      - name: Publish Release
+        uses: softprops/action-gh-release@v1
+        if: env.UPLOAD_ARTIFACT == 'true'
+        with:
+          prerelease: true
+          tag_name: ${{ env.TAG_NAME }}
+          files: |
+            ./syncthing-windows-*.zip
 
   #
   # Linux
@@ -243,6 +252,14 @@ jobs:
           path: |
             syncthing-linux-*.tar.gz
             compat.json
+      - name: Publish Release
+        uses: softprops/action-gh-release@v1
+        if: env.UPLOAD_ARTIFACT == 'true'
+        with:
+          prerelease: true
+          tag_name: ${{ env.TAG_NAME }}
+          files: |
+            ./syncthing-linux-*.tar.gz
 
   #
   # macOS
@@ -342,6 +359,15 @@ jobs:
         with:
           name: packages-macos
           path: syncthing-*.zip
+          
+      - name: Publish Release
+        uses: softprops/action-gh-release@v1
+        if: env.UPLOAD_ARTIFACT == 'true'
+        with:
+          prerelease: true
+          tag_name: ${{ env.TAG_NAME }}
+          files: |
+            ./syncthing-*.zip
 
   notarize-macos:
     name: Notarize for macOS
@@ -439,6 +465,15 @@ jobs:
         with:
           name: packages-other
           path: syncthing-*.tar.gz
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v1
+        if: env.UPLOAD_ARTIFACT == 'true'
+        with:
+          prerelease: true
+          tag_name: ${{ env.TAG_NAME }}
+          files: |
+            ./syncthing-*.tar.gz
 
   #
   # Source
