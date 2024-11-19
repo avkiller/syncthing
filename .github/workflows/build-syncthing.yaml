@@ -181,16 +181,17 @@ jobs:
 
       - name: Create packages
         run: |
+          version=$(go run build.go version)
           go run build.go -goarch amd64 zip
-          go run build.go -goarch arm zip
+          #go run build.go -goarch arm zip
           go run build.go -goarch arm64 zip
-          go run build.go -goarch 386 zip
+          #go run build.go -goarch 386 zip
       - name: Archive artifacts
         uses: actions/upload-artifact@v4
         with:
           name: packages-windows
-          # path: syncthing-windows-*.zip
-          path:  syncthing-windows-${{ env.VERSION }}.zip
+          path: syncthing-windows-*.zip
+          # path:  syncthing-windows-${{ env.VERSION }}.zip
           
       - name: Publish Release
         uses: softprops/action-gh-release@v1
@@ -244,10 +245,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: packages-linux
-          path: syncthing-linux-${{ env.VERSION }}.zip
-          # path: |
-          #   syncthing-linux-*.tar.gz
-          #   compat.json
+          #path: syncthing-linux-${{ env.VERSION }}.zip
+          path: |
+             syncthing-linux-*.tar.gz
+             compat.json
       - name: Publish Release
         uses: softprops/action-gh-release@v1
         if: env.UPLOAD_ARTIFACT == 'true'
@@ -354,8 +355,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: packages-macos
-          # path: syncthing-*.zip
-          path:  syncthing-macos-${{ env.VERSION }}.zip
+          path: syncthing-macos-*.zip
+          #path:  syncthing-macos-${{ env.VERSION }}.zip
           
       - name: Publish Release
         uses: softprops/action-gh-release@v1
