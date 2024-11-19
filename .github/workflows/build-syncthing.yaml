@@ -139,8 +139,6 @@ jobs:
 
   package-windows:
     name: Package for Windows
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/release' || startsWith(github.ref, 'refs/heads/release-'))
-    environment: signing
     runs-on: windows-latest
     steps:
       - name: Set git to use LF
@@ -184,13 +182,6 @@ jobs:
           go run build.go -goarch arm zip
           go run build.go -goarch arm64 zip
           go run build.go -goarch 386 zip
-        env:
-          CGO_ENABLED: "0"
-          CODESIGN_SIGNTOOL: ${{ secrets.CODESIGN_SIGNTOOL }}
-          CODESIGN_CERTIFICATE_BASE64: ${{ secrets.CODESIGN_CERTIFICATE_BASE64 }}
-          CODESIGN_CERTIFICATE_PASSWORD: ${{ secrets.CODESIGN_CERTIFICATE_PASSWORD }}
-          CODESIGN_TIMESTAMP_SERVER: ${{ secrets.CODESIGN_TIMESTAMP_SERVER }}
-
       - name: Archive artifacts
         uses: actions/upload-artifact@v4
         with:
