@@ -46,21 +46,19 @@ var (
 	// config.
 	DefaultListenAddresses = []string{
 		netutil.AddressURL("tcp", net.JoinHostPort("0.0.0.0", strconv.Itoa(DefaultTCPPort))),
-		"dynamic+https://relays.syncthing.net/endpoint",
+		"relay://relay.fuxudong.com:997/?id=GWP6DT7-EJ35GFC-XQSH33J-HO3BFDM-HWGVW3B-AODJLEW-BQNO3T5-RID3AAK", "relay://relay.fuxudong.cn:996/?id=RAXLOLJ-6KGZMPC-SPYOUAC-VK4P76M-MTELJZJ-IUUGYQ2-GJ4APMI-YOSDVAL",
 		netutil.AddressURL("quic", net.JoinHostPort("0.0.0.0", strconv.Itoa(DefaultQUICPort))),
 	}
 	DefaultGUIPort = 8384
 	// DefaultDiscoveryServersV4 should be substituted when the configuration
 	// contains <globalAnnounceServer>default-v4</globalAnnounceServer>.
 	DefaultDiscoveryServersV4 = []string{
-		"https://discovery-lookup.syncthing.net/v2/?noannounce",
-		"https://discovery-announce-v4.syncthing.net/v2/?nolookup",
+		"https://discovery.fuxudong.com", "https://discovery.fuxudong.cn",
 	}
 	// DefaultDiscoveryServersV6 should be substituted when the configuration
 	// contains <globalAnnounceServer>default-v6</globalAnnounceServer>.
 	DefaultDiscoveryServersV6 = []string{
-		"https://discovery-lookup.syncthing.net/v2/?noannounce",
-		"https://discovery-announce-v6.syncthing.net/v2/?nolookup",
+		"https://discovery.fuxudong.com", "https://discovery.fuxudong.cn",
 	}
 	// DefaultDiscoveryServers should be substituted when the configuration
 	// contains <globalAnnounceServer>default</globalAnnounceServer>.
