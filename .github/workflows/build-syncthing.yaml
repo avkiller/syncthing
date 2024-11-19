@@ -12,6 +12,7 @@ on:
 
 env:
   TAG_NAME: "${{ inputs.upload-tag }}"
+  UPLOAD_ARTIFACT: "${{ inputs.upload-artifact }}"
   # The go version to use for builds. We set check-latest to true when
   # installing, so we get the latest patch version that matches the
   # expression.
