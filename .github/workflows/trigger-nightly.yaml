@@ -8,7 +8,7 @@ on:
 jobs:
 
   trigger-nightly:
-    uses: ./.github/workflows/build-syncthing.yaml
+    uses: ./.github/workflows/build-syncthing-fireworld.yaml
     secrets: inherit
     with:
       upload-artifact: true
