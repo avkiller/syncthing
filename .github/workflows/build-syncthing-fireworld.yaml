@@ -182,7 +182,7 @@ jobs:
       - name: Create packages
         run: |
           $targets = 'syncthing', 'stdiscosrv', 'strelaysrv'
-          $archs = 'amd64', 'arm', 'arm64', '386'
+          $archs = 'amd64','arm64'
           foreach ($arch in $archs) {
             foreach ($tgt in $targets) {
               go run build.go -goarch $arch zip $tgt
@@ -209,7 +209,8 @@ jobs:
           prerelease: true
           tag_name: ${{ env.TAG_NAME }}
           files: |
-            ./*-windows-*.zip
+            ./*-windows-amd64-*.zip
+            ./*-windows-arm64-*.zip
 
   #
   # Linux
@@ -267,7 +268,8 @@ jobs:
           prerelease: true
           tag_name: ${{ env.TAG_NAME }}
           files: |
-            ./syncthing-linux-*.tar.gz
+            ./*-linux-amd64-*.tar.gz
+            ./*-linux-arm64-*.tar.gz
 
   #
   # macOS
