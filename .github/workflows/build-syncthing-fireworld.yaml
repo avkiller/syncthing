@@ -1,4 +1,4 @@
-name: Build Syncthing
+name: Build Syncthing fireworld
 
 on:
    workflow_call:
