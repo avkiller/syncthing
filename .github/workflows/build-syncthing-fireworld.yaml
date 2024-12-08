@@ -181,11 +181,20 @@ jobs:
 
       - name: Create packages
         run: |
-          #version=$(go run build.go version)
-          go run build.go -goarch amd64 zip
-          #go run build.go -goarch arm zip
-          go run build.go -goarch arm64 zip
-          #go run build.go -goarch 386 zip
+          $targets = 'syncthing', 'stdiscosrv', 'strelaysrv'
+          $archs = 'amd64', 'arm', 'arm64', '386'
+          foreach ($arch in $archs) {
+            foreach ($tgt in $targets) {
+              go run build.go -goarch $arch zip $tgt
+            }
+          }
+        env:
+          CGO_ENABLED: "0"
+          CODESIGN_SIGNTOOL: ${{ secrets.CODESIGN_SIGNTOOL }}
+          CODESIGN_CERTIFICATE_BASE64: ${{ secrets.CODESIGN_CERTIFICATE_BASE64 }}
+          CODESIGN_CERTIFICATE_PASSWORD: ${{ secrets.CODESIGN_CERTIFICATE_PASSWORD }}
+          CODESIGN_TIMESTAMP_SERVER: ${{ secrets.CODESIGN_TIMESTAMP_SERVER }}
+
       - name: Archive artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -236,7 +245,9 @@ jobs:
         run: |
           archs=$(go tool dist list | grep linux | sed 's#linux/##')
           for goarch in $archs ; do
-            go run build.go -goarch "$goarch" tar
+            for tgt in syncthing stdiscosrv strelaysrv ; do
+              go run build.go -goarch "$goarch" tar "$tgt"
+            done
           done
         env:
           CGO_ENABLED: "0"
@@ -317,7 +328,9 @@ jobs:
 
       - name: Create package (amd64)
         run: |
-          go run build.go -goarch amd64 zip
+          for tgt in syncthing stdiscosrv strelaysrv ; do
+            go run build.go -goarch amd64 zip "$tgt"
+          done
         env:
           CGO_ENABLED: "1"
 
@@ -331,7 +344,9 @@ jobs:
             go "\$@"
           EOT
           chmod 755 xgo.sh
-          go run build.go -gocmd ./xgo.sh -goarch arm64 zip no-upgrade
+          for tgt in syncthing stdiscosrv strelaysrv ; do
+            go run build.go -gocmd ./xgo.sh -goarch arm64 zip "$tgt"
+          done
         env:
           CGO_ENABLED: "1"
 
@@ -385,7 +400,7 @@ jobs:
         run: |
           APPSTORECONNECT_API_KEY_PATH="$RUNNER_TEMP/apikey.p8"
           echo "$APPSTORECONNECT_API_KEY" | base64 -d -o "$APPSTORECONNECT_API_KEY_PATH"
-          for file in syncthing-macos-*.zip ; do
+          for file in *-macos-*.zip ; do
             xcrun notarytool submit \
               -k "$APPSTORECONNECT_API_KEY_PATH" \
               -d "$APPSTORECONNECT_API_KEY_ID" \
