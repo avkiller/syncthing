@@ -1,0 +1,98 @@
+name: Build test windows
+
+on:
+   workflow_call:
+    inputs:
+      upload-artifact:
+        type: boolean
+        default: true
+      upload-tag:
+        type: string
+        default: "nightly"
+
+env:
+  TAG_NAME: "${{ inputs.upload-tag }}"
+  UPLOAD_ARTIFACT: "${{ inputs.upload-artifact }}"
+  VERSION: "1.29.2"
+  # The go version to use for builds. We set check-latest to true when
+  # installing, so we get the latest patch version that matches the
+  # expression.
+  GO_VERSION: "~1.23.0"
+
+  # Optimize compatibility on the slow archictures.
+  GO386: softfloat
+  GOARM: "5"
+  GOMIPS: softfloat
+
+  # Avoid hilarious amounts of obscuring log output when running tests.
+  LOGGER_DISCARD: "1"
+
+  # Our build metadata
+  BUILD_USER: builder
+  BUILD_HOST: github.syncthing.net
+
+# A note on actions and third party code... The actions under actions/ (like
+# `uses: actions/checkout`) are maintained by GitHub, and we need to trust
+# GitHub to maintain their code and infrastructure or we're in deep shit in
+# general. The same doesn't necessarily apply to other actions authors, so
+# some care needs to be taken when adding steps, especially in the paths
+# that lead up to code being packaged and signed.
+
+jobs:
+
+  #
+  # Tests for all platforms. Runs a matrix build on Windows, Linux and Mac,
+  # with the list of expected supported Go versions (current, previous).
+  #
+
+  build-test:
+    name: Build and test
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: ["windows-latest"]
+        # The oldest version in this list should match what we have in our go.mod.
+        # Variables don't seem to be supported here, or we could have done something nice.
+        go: ["~1.23.0"]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Set git to use LF
+        if: matrix.runner == 'windows-latest'
+        # Without this, the Windows checkout will happen with CRLF line
+        # endings, which is fine for the source code but messes up tests
+        # that depend on data on disk being as expected. Ideally, those
+        # tests should be fixed, but not today.
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: true
+          check-latest: true
+
+      - name: Build
+        run: |
+          go run build.go
+
+      - name: Install go-test-json-to-loki
+        run: |
+          go install calmh.dev/go-test-json-to-loki@latest
+
+      - name: Test
+        run: |
+          go version
+          go run build.go test | go-test-json-to-loki
+        env:
+          GOFLAGS: "-json"
+          LOKI_URL: ${{ vars.LOKI_URL }}
+          LOKI_USER: ${{ vars.LOKI_USER }}
+          LOKI_PASSWORD: ${{ secrets.LOKI_PASSWORD }}
+          LOKI_LABELS: "go=${{ matrix.go }},runner=${{ matrix.runner }},repo=${{ github.repository }},ref=${{ github.ref }}"
+
+  #
+  # Meta checks for formatting, copyright, etc
+  #
