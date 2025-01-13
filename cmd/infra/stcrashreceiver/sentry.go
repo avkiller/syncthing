@@ -21,7 +21,7 @@ import (
 	"github.com/syncthing/syncthing/lib/build"
 )
 
-const reportServer = "https://crash.syncthing.net/report/"
+const reportServer = ""
 
 var loader = newGithubSourceCodeLoader()
 
