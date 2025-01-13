@@ -75,7 +75,6 @@ var (
 		"stun.miwifi.com:3478",
 		"stun.cloudflare.com:3478",
 		"stun.chat.bilibili.com:3478",
-		"stun-gl.ugreen.cloud:3478",	
 	}
 )
 
