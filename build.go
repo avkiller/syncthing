@@ -97,9 +97,9 @@ var targets = map[string]target{
 		binaryName:  "syncthing", // .exe will be added automatically for Windows builds
 		archiveFiles: []archiveFile{
 			{src: "{{binary}}", dst: "{{binary}}", perm: 0o755},
-			{src: "README.md", dst: "README.txt", perm: 0o644},
-			{src: "LICENSE", dst: "LICENSE.txt", perm: 0o644},
-			{src: "AUTHORS", dst: "AUTHORS.txt", perm: 0o644},
+			// {src: "README.md", dst: "README.txt", perm: 0o644},
+			// {src: "LICENSE", dst: "LICENSE.txt", perm: 0o644},
+			// {src: "AUTHORS", dst: "AUTHORS.txt", perm: 0o644},
 			// All files from etc/ and extra/ added automatically in init().
 		},
 		systemdService: "syncthing@*.service",
@@ -143,8 +143,8 @@ var targets = map[string]target{
 		archiveFiles: []archiveFile{
 			{src: "{{binary}}", dst: "{{binary}}", perm: 0o755},
 			{src: "cmd/stdiscosrv/README.md", dst: "README.txt", perm: 0o644},
-			{src: "LICENSE", dst: "LICENSE.txt", perm: 0o644},
-			{src: "AUTHORS", dst: "AUTHORS.txt", perm: 0o644},
+			// {src: "LICENSE", dst: "LICENSE.txt", perm: 0o644},
+			// {src: "AUTHORS", dst: "AUTHORS.txt", perm: 0o644},
 		},
 		systemdService: "stdiscosrv.service",
 		installationFiles: []archiveFile{
@@ -169,9 +169,9 @@ var targets = map[string]target{
 		archiveFiles: []archiveFile{
 			{src: "{{binary}}", dst: "{{binary}}", perm: 0o755},
 			{src: "cmd/strelaysrv/README.md", dst: "README.txt", perm: 0o644},
-			{src: "cmd/strelaysrv/LICENSE", dst: "LICENSE.txt", perm: 0o644},
-			{src: "LICENSE", dst: "LICENSE.txt", perm: 0o644},
-			{src: "AUTHORS", dst: "AUTHORS.txt", perm: 0o644},
+			// {src: "cmd/strelaysrv/LICENSE", dst: "LICENSE.txt", perm: 0o644},
+			// {src: "LICENSE", dst: "LICENSE.txt", perm: 0o644},
+			// {src: "AUTHORS", dst: "AUTHORS.txt", perm: 0o644},
 		},
 		systemdService: "strelaysrv.service",
 		installationFiles: []archiveFile{
@@ -192,24 +192,24 @@ var targets = map[string]target{
 		buildPkgs:   []string{"github.com/syncthing/syncthing/cmd/infra/strelaypoolsrv"},
 		binaryName:  "strelaypoolsrv",
 	},
-	"stupgrades": {
-		name:        "stupgrades",
-		description: "Syncthing Upgrade Check Server",
-		buildPkgs:   []string{"github.com/syncthing/syncthing/cmd/infra/stupgrades"},
-		binaryName:  "stupgrades",
-	},
-	"stcrashreceiver": {
-		name:        "stcrashreceiver",
-		description: "Syncthing Crash Server",
-		buildPkgs:   []string{"github.com/syncthing/syncthing/cmd/infra/stcrashreceiver"},
-		binaryName:  "stcrashreceiver",
-	},
-	"ursrv": {
-		name:        "ursrv",
-		description: "Syncthing Usage Reporting Server",
-		buildPkgs:   []string{"github.com/syncthing/syncthing/cmd/infra/ursrv"},
-		binaryName:  "ursrv",
-	},
+	// "stupgrades": {
+	// 	name:        "stupgrades",
+	// 	description: "Syncthing Upgrade Check Server",
+	// 	buildPkgs:   []string{"github.com/syncthing/syncthing/cmd/infra/stupgrades"},
+	// 	binaryName:  "stupgrades",
+	// },
+	// "stcrashreceiver": {
+	// 	name:        "stcrashreceiver",
+	// 	description: "Syncthing Crash Server",
+	// 	buildPkgs:   []string{"github.com/syncthing/syncthing/cmd/infra/stcrashreceiver"},
+	// 	binaryName:  "stcrashreceiver",
+	// },
+	// "ursrv": {
+	// 	name:        "ursrv",
+	// 	description: "Syncthing Usage Reporting Server",
+	// 	buildPkgs:   []string{"github.com/syncthing/syncthing/cmd/infra/ursrv"},
+	// 	binaryName:  "ursrv",
+	// },
 }
 
 func initTargets() {
@@ -227,9 +227,9 @@ func initTargets() {
 	// The "syncthing" target includes a few more files found in the "etc"
 	// and "extra" dirs.
 	syncthingPkg := targets["syncthing"]
-	for _, file := range listFiles("etc") {
-		syncthingPkg.archiveFiles = append(syncthingPkg.archiveFiles, archiveFile{src: file, dst: file, perm: 0o644})
-	}
+	// for _, file := range listFiles("etc") {
+	// 	syncthingPkg.archiveFiles = append(syncthingPkg.archiveFiles, archiveFile{src: file, dst: file, perm: 0o644})
+	// }
 	for _, file := range listFiles("extra") {
 		syncthingPkg.archiveFiles = append(syncthingPkg.archiveFiles, archiveFile{src: file, dst: file, perm: 0o644})
 	}
