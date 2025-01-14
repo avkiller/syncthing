@@ -1,0 +1,22 @@
+name: env test task
+
+on:
+   workflow_call:
+    inputs:
+      upload-artifact:
+        type: boolean
+        default: true
+      upload-tag:
+        type: string
+        default: "nightly"
+
+env:
+  TAG_NAME: "${{ inputs.upload-tag }}"
+
+check-version:
+    runs-on: ubuntu-latest
+    needs: load-version
+    steps:    
+      # 下面的步骤是为了展示如何使用加载的环境变量，不是必须的
+      - name: Check VERSION
+        run: echo "Check version is ${{ env.TAG_NAME }}"
