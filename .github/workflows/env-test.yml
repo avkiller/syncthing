@@ -1,0 +1,20 @@
+name: Load version env
+
+on:
+  workflow_dispatch:
+
+jobs:
+  load-version:
+    runs-on: ubuntu-latest
+    steps:    
+      - name: Checkout repository
+        uses: actions/checkout@v4
+    
+      - name: Load VERSION
+        run: echo "VERSION=$(cat RELEASE)" >> $GITHUB_ENV
+
+      # 下面的步骤是为了展示如何使用加载的环境变量，不是必须的
+      - name: Print VERSION
+        run: echo "The version is $VERSION"
+
+
