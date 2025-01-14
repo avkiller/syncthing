@@ -3,9 +3,6 @@ name: Load version env
 on:
   workflow_dispatch:
 
-env:
-  TAG_NAME: "8888"
-
 jobs:
   load-version:
     runs-on: ubuntu-latest
@@ -28,6 +25,7 @@ jobs:
       # 下面的步骤是为了展示如何使用加载的环境变量，不是必须的
       - name: Print VERSION
         run: echo "The version is $VERSION"
+        
   trigger-nightly:
     needs: load-version
     uses: ./.github/workflows/env-job.yml
