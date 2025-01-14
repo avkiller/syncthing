@@ -7,7 +7,7 @@ jobs:
   load-version:
     runs-on: ubuntu-latest
     outputs:
-      output1: ${{ steps.set_ver.outputs.tagname }}
+      tag-name: ${{ steps.set_ver.outputs.tagname }}
     steps:    
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,18 +23,19 @@ jobs:
           fi
 
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "tagname=VERSION" >> $GITHUB_OUTPUT
+          echo "tagname=$VERSION" >> $GITHUB_OUTPUT
 
       # 下面的步骤是为了展示如何使用加载的环境变量，不是必须的
       - name: Print VERSION
-        run: echo "The version is $VERSION"
-        
+        run: |
+          echo "The version is $VERSION"
+          echo "The version is $tagname"
   trigger-nightly:
     needs: load-version
     uses: ./.github/workflows/env-job.yml
     secrets: inherit
     with:
       upload-artifact: true
-      upload-tag: ${{needs.load-version.outputs.tagname}}
+      upload-tag: ${{needs.load-version.outputs.tag-name}}
 
     
