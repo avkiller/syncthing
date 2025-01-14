@@ -32,6 +32,6 @@ jobs:
     secrets: inherit
     with:
       upload-artifact: true
-      upload-tag: ${{ steps.set_version.outputs.VERSION }}
+      upload-tag: $VERSION
 
     
