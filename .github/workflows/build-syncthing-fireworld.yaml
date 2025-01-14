@@ -207,7 +207,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: env.UPLOAD_ARTIFACT == 'true'
         with:
-          prerelease: true
+          prerelease: false
+          name: ${{ env.TAG_NAME }}
           tag_name: ${{ env.TAG_NAME }}
           files: |
             ./*-windows-amd64-*.zip
@@ -266,7 +267,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: env.UPLOAD_ARTIFACT == 'true'
         with:
-          prerelease: true
+          prerelease: false
+          name: ${{ env.TAG_NAME }}
           tag_name: ${{ env.TAG_NAME }}
           files: |
             ./*-linux-amd64-*.tar.gz
@@ -380,7 +382,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: env.UPLOAD_ARTIFACT == 'true'
         with:
-          prerelease: true
+          prerelease: false
+          name: ${{ env.TAG_NAME }}
           tag_name: ${{ env.TAG_NAME }}
           files: |
             ./*-macos*.zip
