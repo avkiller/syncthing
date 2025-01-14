@@ -29,6 +29,7 @@ jobs:
         
   check-version:
     runs-on: ubuntu-latest
+    needs: load-version
     steps:    
       # 下面的步骤是为了展示如何使用加载的环境变量，不是必须的
       - name: Check VERSION
