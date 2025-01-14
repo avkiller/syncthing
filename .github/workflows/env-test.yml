@@ -29,7 +29,6 @@ jobs:
       - name: Print VERSION
         run: |
           echo "The version is $VERSION"
-          echo "The version is $tagname"
   trigger-nightly:
     needs: load-version
     uses: ./.github/workflows/env-job.yml
