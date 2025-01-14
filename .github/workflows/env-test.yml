@@ -14,6 +14,8 @@ jobs:
         uses: actions/checkout@v4
     
       - name: Get Version
+        id: set_version
+
         run: |
           if [ -f "RELEASE" ]; then
             VERSION=$(cat RELEASE)
@@ -33,6 +35,6 @@ jobs:
     steps:    
       # 下面的步骤是为了展示如何使用加载的环境变量，不是必须的
       - name: Check VERSION
-        run: echo "Check version is $VERSION"
+        run: echo "Check version is ${{ steps.set_version.outputs.VERSION }}"
 
 
