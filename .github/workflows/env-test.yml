@@ -30,7 +30,7 @@ jobs:
         run: echo "The version is $VERSION"
 
       - name: run job
-        uses: ./.github/workflows/fireworld-build.yml
+        uses: ./.github/workflows/env-job.yml
         with:
           upload-artifact: true
           upload-tag:  $VERSION
