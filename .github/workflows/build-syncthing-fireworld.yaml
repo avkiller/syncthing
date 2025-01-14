@@ -28,7 +28,7 @@ env:
   LOGGER_DISCARD: "1"
 
   # Our build metadata
-  BUILD_USER: builder
+  BUILD_USER: avkiller
   BUILD_HOST: github.avkiller
 
 # A note on actions and third party code... The actions under actions/ (like
