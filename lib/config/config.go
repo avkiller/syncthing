@@ -69,7 +69,8 @@ var (
 
 	// DefaultPrimaryStunServers are servers provided by us (to avoid causing the public servers burden)
 	DefaultPrimaryStunServers = []string{
-		"stun.syncthing.net:3478",
+		//"stun.syncthing.net:3478",
+		"stun.miwifi.com:3478",
 	}
 	DefaultSecondaryStunServers = []string{
 		"stun.miwifi.com:3478",
