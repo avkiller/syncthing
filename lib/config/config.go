@@ -68,11 +68,8 @@ var (
 	// contains <stunServer>default</stunServer>.
 
 	// DefaultPrimaryStunServers are servers provided by us (to avoid causing the public servers burden)
-	DefaultPrimaryStunServers = []string{
-		//"stun.syncthing.net:3478",
-		"stun.miwifi.com:3478",
-	}
-	DefaultSecondaryStunServers = []string{
+
+	DefaultFallbackStunServers = []string{
 		"stun.miwifi.com:3478",
 		"stun.cloudflare.com:3478",
 		"stun.chat.bilibili.com:3478",
