@@ -215,7 +215,7 @@ jobs:
           name: unsigned-packages-windows
           path: "*.zip"
           
-     - name: Publish Release
+      - name: Publish Release
         uses: softprops/action-gh-release@v1
         if: env.UPLOAD_ARTIFACT == 'true'
         with:
