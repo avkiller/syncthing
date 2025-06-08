@@ -1,41 +1,21 @@
-name: Trigger build & release fireworld
+name: Trigger nightly build & release
 on:
   workflow_dispatch:
-  #schedule:
+  schedule:
     # Run nightly build at 01:00 UTC
-  #  - cron: '00 01 * * *'
+    - cron: '00 01 * * *'
 
 jobs:
-  load-version:
-    runs-on: ubuntu-latest
-    outputs:
-      tag-name: ${{ steps.set_ver.outputs.tagname }}
-    steps:    
-      - name: Checkout repository
-        uses: actions/checkout@v4
-    
-      - name: Get Version
-        id: set_ver
 
-        run: |
-          if [ -f "RELEASE" ]; then
-            VERSION=$(cat RELEASE)
-          else
-            VERSION="nightly"
-          fi
-
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "tagname=$VERSION" >> $GITHUB_OUTPUT
-
-      # 下面的步骤是为了展示如何使用加载的环境变量，不是必须的
-      - name: Print VERSION
-        run: |
-          echo "The version is $VERSION"
-          
   trigger-nightly:
-    needs: load-version
-    uses: ./.github/workflows/build-syncthing-fireworld.yaml
-    secrets: inherit
-    with:
-      upload-artifact: true
-      upload-tag: ${{needs.load-version.outputs.tag-name}}
+    runs-on: ubuntu-latest
+    name: Push to release-nightly to trigger build
+    steps:
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - run: |
+          git push origin main:release-nightly
