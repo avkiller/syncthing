@@ -20,9 +20,8 @@ env:
   GO_VERSION: "~1.24.0"
 
   # Optimize compatibility on the slow archictures.
-  GO386: softfloat
-  GOARM: "5"
   GOMIPS: softfloat
+  GOARM: "6"
 
   # Avoid hilarious amounts of obscuring log output when running tests.
   LOGGER_DISCARD: "1"
@@ -89,8 +88,8 @@ jobs:
           go run build.go test | go-test-json-to-loki
         env:
           GOFLAGS: "-json"
-          LOKI_URL: ${{ vars.LOKI_URL }}
-          LOKI_USER: ${{ vars.LOKI_USER }}
+          LOKI_URL: ${{ secrets.LOKI_URL }}
+          LOKI_USER: ${{ secrets.LOKI_USER }}
           LOKI_PASSWORD: ${{ secrets.LOKI_PASSWORD }}
           LOKI_LABELS: "go=${{ matrix.go }},runner=${{ matrix.runner }},repo=${{ github.repository }},ref=${{ github.ref }}"
 
