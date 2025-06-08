@@ -2,7 +2,7 @@ name: Build Syncthing fireworld
 
 on:
   workflow_call:
-  inputs:
+    inputs:
       upload-artifact:
         type: boolean
         default: true
