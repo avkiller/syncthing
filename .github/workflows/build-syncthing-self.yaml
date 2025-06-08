@@ -1,4 +1,4 @@
-name: Build Syncthing
+name: Build Syncthing fireworld
 
 on:
   workflow_call:
@@ -11,12 +11,12 @@ on:
         default: "nightly"
 
 env:
+  TAG_NAME: "${{ inputs.upload-tag }}"
+  UPLOAD_ARTIFACT: "${{ inputs.upload-artifact }}"
+  VERSION: "1.29.4"
   # The go version to use for builds. We set check-latest to true when
   # installing, so we get the latest patch version that matches the
   # expression.
-  TAG_NAME: "${{ inputs.upload-tag }}"
-  UPLOAD_ARTIFACT: "${{ inputs.upload-artifact }}"
-  VERSION: "1.30.0"
   GO_VERSION: "~1.24.0"
 
   # Optimize compatibility on the slow archictures.
