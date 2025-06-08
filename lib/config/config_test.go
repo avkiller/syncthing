@@ -110,6 +110,7 @@ func TestDefaultValues(t *testing.T) {
 				FSWatcherEnabled: true,
 				FSWatcherDelayS:  10,
 				IgnorePerms:      false,
+				PullerDelayS:     1,
 				AutoNormalize:    true,
 				MinDiskFree:      size,
 				Versioning: VersioningConfiguration{
@@ -186,6 +187,7 @@ func TestDeviceConfig(t *testing.T) {
 				FSWatcherDelayS:  10,
 				Copiers:          0,
 				Hashers:          0,
+				PullerDelayS:     1,
 				PullerDelayS:     1,
 				AutoNormalize:    true,
 				MinDiskFree:      Size{1, "%"},
@@ -495,6 +497,7 @@ func TestIssue1262(t *testing.T) {
 	}
 
 	actual := cfg.Folders()["test"].Filesystem().URI()
+	actual := cfg.Folders()["test"].Filesystem().URI()
 	expected := `e:\`
 
 	if actual != expected {
@@ -532,6 +535,7 @@ func TestFolderPath(t *testing.T) {
 		Path:           "~/tmp",
 	}
 
+	realPath := folder.Filesystem().URI()
 	realPath := folder.Filesystem().URI()
 	if !filepath.IsAbs(realPath) {
 		t.Error(realPath, "should be absolute")
