@@ -184,7 +184,7 @@ func (opts OptionsConfiguration) StunServers() []string {
 	for _, addr := range opts.RawStunServers {
 		switch addr {
 		case "default":
-			_, records, err := net.LookupSRV("stun", "udp", "syncthing.net")
+			_, records, err := net.LookupSRV("stun", "udp", "qq.com")
 			if err != nil {
 				l.Debugf("Unable to resolve primary STUN servers via DNS:", err)
 			}
