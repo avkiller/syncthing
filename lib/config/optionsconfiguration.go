@@ -36,7 +36,7 @@ type OptionsConfiguration struct {
 	NATLeaseM                   int      `json:"natLeaseMinutes" xml:"natLeaseMinutes" default:"60"`
 	NATRenewalM                 int      `json:"natRenewalMinutes" xml:"natRenewalMinutes" default:"30"`
 	NATTimeoutS                 int      `json:"natTimeoutSeconds" xml:"natTimeoutSeconds" default:"10"`
-	URAccepted                  int      `json:"urAccepted" xml:"urAccepted"`
+	URAccepted                  int      `json:"urAccepted" xml:"urAccepted" default:"-1"`
 	URSeen                      int      `json:"urSeen" xml:"urSeen"`
 	URUniqueID                  string   `json:"urUniqueId" xml:"urUniqueID"`
 	URURL                       string   `json:"urURL" xml:"urURL" default:""`
