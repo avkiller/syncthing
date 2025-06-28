@@ -147,7 +147,7 @@ func (cfg *Configuration) ProbeFreePorts() error {
 	} else {
 		cfg.Options.RawListenAddresses = []string{
 			netutil.AddressURL("tcp", net.JoinHostPort("0.0.0.0", strconv.Itoa(port))),
-			"dynamic+https://relays.syncthing.net/endpoint",
+			"dynamic+https://relay.fuxudong.cn/endpoint",
 			netutil.AddressURL("quic", net.JoinHostPort("0.0.0.0", strconv.Itoa(port))),
 		}
 	}
