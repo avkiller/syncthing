@@ -122,9 +122,10 @@ type CLI struct {
 	// subcommands. Their settings take effect on the `locations` package by
 	// way of the command line parser, so anything using `locations.Get` etc
 	// will be doing the right thing.
-	ConfDir string `name:"config" short:"C" placeholder:"PATH" env:"STCONFDIR" help:"Set configuration directory (config and keys)"`
-	DataDir string `name:"data" short:"D" placeholder:"PATH" env:"STDATADIR" help:"Set data directory (database and logs)"`
-	HomeDir string `name:"home" short:"H" placeholder:"PATH" env:"STHOMEDIR" help:"Set configuration and data directory"`
+	ConfDir     string `name:"config" short:"C" placeholder:"PATH" env:"STCONFDIR" help:"Set configuration directory (config and keys)"`
+	DataDir     string `name:"data" short:"D" placeholder:"PATH" env:"STDATADIR" help:"Set data directory (database and logs)"`
+	HomeDir     string `name:"home" short:"H" placeholder:"PATH" env:"STHOMEDIR" help:"Set configuration and data directory"`
+	VersionFlag bool   `name:"version" help:"Show current version, then exit"`
 
 	Serve serveCmd `cmd:"" help:"Run Syncthing (default)" default:"withargs"`
 	CLI   cli.CLI  `cmd:"" help:"Command line interface for Syncthing"`
@@ -155,7 +156,7 @@ type serveCmd struct {
 	Audit                     bool          `help:"Write events to audit file" env:"STAUDIT"`
 	AuditFile                 string        `name:"auditfile" help:"Specify audit file (use \"-\" for stdout, \"--\" for stderr)" placeholder:"PATH" env:"STAUDITFILE"`
 	DBMaintenanceInterval     time.Duration `help:"Database maintenance interval" default:"8h" env:"STDBMAINTENANCEINTERVAL"`
-	DBDeleteRetentionInterval time.Duration `help:"Database deleted item retention interval" default:"4320h" env:"STDBDELETERETENTIONINTERVAL"`
+	DBDeleteRetentionInterval time.Duration `help:"Database deleted item retention interval" default:"10920h" env:"STDBDELETERETENTIONINTERVAL"`
 	GUIAddress                string        `name:"gui-address" help:"Override GUI address (e.g. \"http://192.0.2.42:8443\")" placeholder:"URL" env:"STGUIADDRESS"`
 	GUIAPIKey                 string        `name:"gui-apikey" help:"Override GUI API key" placeholder:"API-KEY" env:"STGUIAPIKEY"`
 	LogFile                   string        `name:"log-file" aliases:"logfile" help:"Log file name (see below)" default:"${logFile}" placeholder:"PATH" env:"STLOGFILE"`
@@ -224,6 +225,12 @@ func main() {
 	kongplete.Complete(parser)
 	ctx, err := parser.Parse(os.Args[1:])
 	parser.FatalIfErrorf(err)
+
+	if entrypoint.VersionFlag {
+		_ = versionCmd{}.Run()
+		return
+	}
+
 	err = ctx.Run()
 	parser.FatalIfErrorf(err)
 }
@@ -472,7 +479,7 @@ func (c *serveCmd) syncthingMain() {
 		})
 	}
 
-	if err := syncthing.TryMigrateDatabase(c.DBDeleteRetentionInterval); err != nil {
+	if err := syncthing.TryMigrateDatabase(ctx, c.DBDeleteRetentionInterval, cfgWrapper.GUI().Address()); err != nil {
 		slog.Error("Failed to migrate old-style database", slogutil.Error(err))
 		os.Exit(1)
 	}
@@ -868,12 +875,16 @@ func (u upgradeCmd) Run() error {
 		lf := flock.New(locations.Get(locations.LockFile))
 		var locked bool
 		locked, err = lf.TryLock()
-		if err != nil {
+		// ErrNotExist is a valid error if this is a new/blank installation
+		// without a config dir, in which case we can proceed with a normal
+		// non-API upgrade.
+		switch {
+		case err != nil && !os.IsNotExist(err):
 			slog.Error("Failed to lock for upgrade", slogutil.Error(err))
 			os.Exit(1)
-		} else if locked {
+		case locked:
 			err = upgradeViaRest()
-		} else {
+		default:
 			err = upgrade.To(release)
 		}
 	}
