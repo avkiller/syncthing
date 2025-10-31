@@ -184,6 +184,7 @@ jobs:
     needs:
       - build-test
       - package-linux
+      # - package-illumos
       - package-cross
       # - package-source
       # - package-debian
@@ -349,16 +350,16 @@ jobs:
           sudo apt-get install -y gcc-mips64-linux-gnuabi64 gcc-mips64el-linux-gnuabi64
           for tgt in syncthing stdiscosrv strelaysrv ; do
             go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch amd64 -cc "zig cc -target x86_64-linux-musl" tar "$tgt"
-            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch 386 -cc "zig cc -target x86-linux-musl" tar "$tgt"
-            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch arm -cc "zig cc -target arm-linux-musleabi -mcpu=arm1136j_s" tar "$tgt"
+            # go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch 386 -cc "zig cc -target x86-linux-musl" tar "$tgt"
+            # go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch arm -cc "zig cc -target arm-linux-musleabi -mcpu=arm1136j_s" tar "$tgt"
             go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch arm64 -cc "zig cc -target aarch64-linux-musl" tar "$tgt"
-            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch mips -cc "zig cc -target mips-linux-musleabi" tar "$tgt"
-            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch mipsle -cc "zig cc -target mipsel-linux-musleabi" tar "$tgt"
-            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch mips64 -cc mips64-linux-gnuabi64-gcc tar "$tgt"
-            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch mips64le -cc mips64el-linux-gnuabi64-gcc tar "$tgt"
-            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch riscv64 -cc "zig cc -target riscv64-linux-musl" tar "$tgt"
-            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch s390x -cc "zig cc -target s390x-linux-musl" tar "$tgt"
-            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch loong64 -cc "zig cc -target loongarch64-linux-musl" tar "$tgt"
+            # go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch mips -cc "zig cc -target mips-linux-musleabi" tar "$tgt"
+            # go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch mipsle -cc "zig cc -target mipsel-linux-musleabi" tar "$tgt"
+            # go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch mips64 -cc mips64-linux-gnuabi64-gcc tar "$tgt"
+            # go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch mips64le -cc mips64el-linux-gnuabi64-gcc tar "$tgt"
+            # go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch riscv64 -cc "zig cc -target riscv64-linux-musl" tar "$tgt"
+            # go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch s390x -cc "zig cc -target s390x-linux-musl" tar "$tgt"
+            # go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch loong64 -cc "zig cc -target loongarch64-linux-musl" tar "$tgt"
             # go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch ppc64 -cc "zig cc -target powerpc64-linux-musl" tar "$tgt" # fails with linkmode not supported
             go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch ppc64le -cc "zig cc -target powerpc64le-linux-musl" tar "$tgt"
           done
@@ -385,6 +386,40 @@ jobs:
             ./*-linux-amd64-*.tar.gz
             ./*-linux-arm64-*.tar.gz
 
+  package-illumos:
+    if: false
+    runs-on: ubuntu-latest
+    name: Package for illumos
+    needs:
+      - facts
+    env:
+      VERSION: ${{ needs.facts.outputs.version }}
+      GO_VERSION: ${{ needs.facts.outputs.go-version }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build syncthing in OmniOS VM
+        uses: vmactions/omnios-vm@v1
+        with:
+          envs: "VERSION GO_VERSION CGO_ENABLED"
+          usesh: true
+          prepare: |
+            pkg install developer/gcc14 web/curl archiver/gnu-tar
+          run: |
+            curl -L "https://go.dev/dl/go$GO_VERSION.illumos-amd64.tar.gz" | gtar xzf -
+            export PATH="$GITHUB_WORKSPACE/go/bin:$PATH"
+            go version
+            for tgt in syncthing stdiscosrv strelaysrv ; do
+              go run build.go -tags "${{env.TAGS}}" tar "$tgt"
+            done
+        env:
+          CGO_ENABLED: "1"
+
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-illumos
+          path: "*.tar.gz"         
   #
   # macOS. The entire build runs in the release environment because code
   # signing is part of the build process, so it is limited to release
@@ -553,6 +588,7 @@ jobs:
             | grep -v aix/ppc64 \
             | grep -v android/ \
             | grep -v darwin/ \
+            | grep -v illumos/ \
             | grep -v ios/ \
             | grep -v js/ \
             | grep -v linux/ \
@@ -640,6 +676,7 @@ jobs:
     needs:
       - codesign-windows
       - package-linux
+      - package-illumos
       - package-macos
       - package-cross
       - package-source
