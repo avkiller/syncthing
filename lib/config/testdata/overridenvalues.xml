@@ -30,7 +30,7 @@
         <minHomeDiskFree unit="%">5.2</minHomeDiskFree>
         <urURL>https://localhost/newdata</urURL>
         <urSeen>8</urSeen>
-        <urAccepted>4</urAccepted>
+        <urAccepted>-1</urAccepted>
         <urInitialDelayS>800</urInitialDelayS>
         <urPostInsecurely>true</urPostInsecurely>
         <releasesURL>https://localhost/releases</releasesURL>
