@@ -17,9 +17,9 @@ env:
   # The go version to use for builds. We set check-latest to true when
   # installing, so we get the latest patch version that matches the
   # expression.
-  GO_VERSION: "~1.24.0"
+  GO_VERSION: "~1.25.0"
 
-  # Optimize compatibility on the slow archictures.
+  # Optimize compatibility on the slow architectures.
   GOMIPS: softfloat
   GOARM: "6"
 
@@ -30,7 +30,8 @@ env:
   BUILD_USER: builder
   BUILD_HOST: github.avkiller
 
-  TAGS: "netgo osusergo sqlite_omit_load_extension sqlite_dbstat"
+  TAGS: "sqlite_omit_load_extension sqlite_dbstat"
+  TAGS_LINUX: "sqlite_omit_load_extension sqlite_dbstat netgo osusergo"
 
 # A note on actions and third party code... The actions under actions/ (like
 # `uses: actions/checkout`) are maintained by GitHub, and we need to trust
@@ -51,14 +52,15 @@ jobs:
     outputs:
       version: ${{ steps.get-version.outputs.version }}
       release-kind: ${{ steps.get-version.outputs.release-kind }}
+      release-generation: ${{ steps.get-version.outputs.release-generation }}
       go-version: ${{ steps.get-go.outputs.go-version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           ref: ${{ github.ref }} # https://github.com/actions/checkout/issues/882
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: false
@@ -80,6 +82,12 @@ jobs:
           echo "release-kind=$kind" >> "$GITHUB_OUTPUT"
           echo "Release kind: $kind"
 
+          generation=v1
+          if [[ $version == v2.* ]] ; then
+            generation=v2
+          fi
+          echo "release-generation=$generation" >> "$GITHUB_OUTPUT"
+          echo "Release generation: $generation"
       - name: Get Go version
         id: get-go
         run: |
@@ -120,7 +128,7 @@ jobs:
         runner: ["windows-latest", "ubuntu-latest"]
         # The oldest version in this list should match what we have in our go.mod.
         # Variables don't seem to be supported here, or we could have done something nice.
-        go: ["~1.24.0"]
+        go: ["~1.25.0"]
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Set git to use LF
@@ -133,9 +141,9 @@ jobs:
           git config --global core.autocrlf false
           git config --global core.eol lf
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go }}
           cache: true
@@ -184,7 +192,7 @@ jobs:
       - golangci
       - meta
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
   #
   # Windows
@@ -199,9 +207,9 @@ jobs:
       VERSION: ${{ needs.facts.outputs.version }}
       RELEASE_KIND: ${{ needs.facts.outputs.release-kind }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ needs.facts.outputs.go-version }}
           cache: false
@@ -320,9 +328,9 @@ jobs:
       VERSION: ${{ needs.facts.outputs.version }}
       RELEASE_KIND: ${{ needs.facts.outputs.release-kind }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ needs.facts.outputs.go-version }}
           cache: false
@@ -340,19 +348,19 @@ jobs:
         run: |
           sudo apt-get install -y gcc-mips64-linux-gnuabi64 gcc-mips64el-linux-gnuabi64
           for tgt in syncthing stdiscosrv strelaysrv ; do
-            go run build.go -tags "${{env.TAGS}}" -goos linux -goarch amd64 -cc "zig cc -target x86_64-linux-musl" tar "$tgt"
-            # go run build.go -tags "${{env.TAGS}}" -goos linux -goarch 386 -cc "zig cc -target x86-linux-musl" tar "$tgt"
-            # go run build.go -tags "${{env.TAGS}}" -goos linux -goarch arm -cc "zig cc -target arm-linux-musleabi -mcpu=arm1136j_s" tar "$tgt"
-            go run build.go -tags "${{env.TAGS}}" -goos linux -goarch arm64 -cc "zig cc -target aarch64-linux-musl" tar "$tgt"
-            # go run build.go -tags "${{env.TAGS}}" -goos linux -goarch mips -cc "zig cc -target mips-linux-musleabi" tar "$tgt"
-            # go run build.go -tags "${{env.TAGS}}" -goos linux -goarch mipsle -cc "zig cc -target mipsel-linux-musleabi" tar "$tgt"
-            # go run build.go -tags "${{env.TAGS}}" -goos linux -goarch mips64 -cc mips64-linux-gnuabi64-gcc tar "$tgt"
-            # go run build.go -tags "${{env.TAGS}}" -goos linux -goarch mips64le -cc mips64el-linux-gnuabi64-gcc tar "$tgt"
-            # go run build.go -tags "${{env.TAGS}}" -goos linux -goarch riscv64 -cc "zig cc -target riscv64-linux-musl" tar "$tgt"
-            # go run build.go -tags "${{env.TAGS}}" -goos linux -goarch s390x -cc "zig cc -target s390x-linux-musl" tar "$tgt"
-            # go run build.go -tags "${{env.TAGS}}" -goos linux -goarch loong64 -cc "zig cc -target loongarch64-linux-musl" tar "$tgt"
-            # go run build.go -tags "${{env.TAGS}}" -goos linux -goarch ppc64 -cc "zig cc -target powerpc64-linux-musl" tar "$tgt" # fails with linkmode not supported
-            # go run build.go -tags "${{env.TAGS}}" -goos linux -goarch ppc64le -cc "zig cc -target powerpc64le-linux-musl" tar "$tgt"
+            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch amd64 -cc "zig cc -target x86_64-linux-musl" tar "$tgt"
+            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch 386 -cc "zig cc -target x86-linux-musl" tar "$tgt"
+            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch arm -cc "zig cc -target arm-linux-musleabi -mcpu=arm1136j_s" tar "$tgt"
+            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch arm64 -cc "zig cc -target aarch64-linux-musl" tar "$tgt"
+            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch mips -cc "zig cc -target mips-linux-musleabi" tar "$tgt"
+            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch mipsle -cc "zig cc -target mipsel-linux-musleabi" tar "$tgt"
+            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch mips64 -cc mips64-linux-gnuabi64-gcc tar "$tgt"
+            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch mips64le -cc mips64el-linux-gnuabi64-gcc tar "$tgt"
+            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch riscv64 -cc "zig cc -target riscv64-linux-musl" tar "$tgt"
+            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch s390x -cc "zig cc -target s390x-linux-musl" tar "$tgt"
+            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch loong64 -cc "zig cc -target loongarch64-linux-musl" tar "$tgt"
+            # go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch ppc64 -cc "zig cc -target powerpc64-linux-musl" tar "$tgt" # fails with linkmode not supported
+            go run build.go -tags "${{env.TAGS_LINUX}}" -goos linux -goarch ppc64le -cc "zig cc -target powerpc64le-linux-musl" tar "$tgt"
           done
         env:
           CGO_ENABLED: "1"
@@ -396,9 +404,9 @@ jobs:
       VERSION: ${{ needs.facts.outputs.version }}
       RELEASE_KIND: ${{ needs.facts.outputs.release-kind }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ needs.facts.outputs.go-version }}
           cache: false
@@ -525,9 +533,9 @@ jobs:
       VERSION: ${{ needs.facts.outputs.version }}
       RELEASE_KIND: ${{ needs.facts.outputs.release-kind }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ needs.facts.outputs.go-version }}
           cache: false
@@ -592,9 +600,9 @@ jobs:
       VERSION: ${{ needs.facts.outputs.version }}
       RELEASE_KIND: ${{ needs.facts.outputs.release-kind }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ needs.facts.outputs.go-version }}
           cache: false
@@ -641,9 +649,9 @@ jobs:
       RELEASE_KIND: ${{ needs.facts.outputs.release-kind }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: syncthing/release-tools
           path: tools
@@ -651,7 +659,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ needs.facts.outputs.go-version }}
           cache: false
@@ -723,9 +731,9 @@ jobs:
       VERSION: ${{ needs.facts.outputs.version }}
       RELEASE_KIND: ${{ needs.facts.outputs.release-kind }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ needs.facts.outputs.go-version }}
           cache: false
@@ -750,10 +758,10 @@ jobs:
       - name: Package for Debian (CGO)
         run: |
           for tgt in syncthing stdiscosrv strelaysrv ; do
-            go run build.go -no-upgrade -installsuffix=no-upgrade -tags "${{env.TAGS}}" -goos linux -goarch amd64 -cc "zig cc -target x86_64-linux-musl" deb "$tgt"
-            go run build.go -no-upgrade -installsuffix=no-upgrade -tags "${{env.TAGS}}" -goos linux -goarch armel -cc "zig cc -target arm-linux-musleabi -mcpu=arm1136j_s" deb "$tgt"
-            go run build.go -no-upgrade -installsuffix=no-upgrade -tags "${{env.TAGS}}" -goos linux -goarch armhf -cc "zig cc -target arm-linux-musleabi -mcpu=arm1136j_s" deb "$tgt"
-            go run build.go -no-upgrade -installsuffix=no-upgrade -tags "${{env.TAGS}}" -goos linux -goarch arm64 -cc "zig cc -target aarch64-linux-musl" deb "$tgt"
+            go run build.go -no-upgrade -installsuffix=no-upgrade -tags "${{env.TAGS_LINUX}}" -goos linux -goarch amd64 -cc "zig cc -target x86_64-linux-musl" deb "$tgt"
+            go run build.go -no-upgrade -installsuffix=no-upgrade -tags "${{env.TAGS_LINUX}}" -goos linux -goarch armel -cc "zig cc -target arm-linux-musleabi -mcpu=arm1136j_s" deb "$tgt"
+            go run build.go -no-upgrade -installsuffix=no-upgrade -tags "${{env.TAGS_LINUX}}" -goos linux -goarch armhf -cc "zig cc -target arm-linux-musleabi -mcpu=arm1136j_s" deb "$tgt"
+            go run build.go -no-upgrade -installsuffix=no-upgrade -tags "${{env.TAGS_LINUX}}" -goos linux -goarch arm64 -cc "zig cc -target aarch64-linux-musl" deb "$tgt"
           done
         env:
           BUILD_USER: debian
@@ -779,7 +787,7 @@ jobs:
       - facts
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: syncthing/release-tools
           path: tools
@@ -790,7 +798,7 @@ jobs:
           name: packages-signed
           path: packages
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ needs.facts.outputs.go-version }}
           cache: false
@@ -835,7 +843,7 @@ jobs:
       RELEASE_KIND: ${{ needs.facts.outputs.release-kind }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           ref: ${{ github.ref }} # https://github.com/actions/checkout/issues/882
@@ -852,7 +860,7 @@ jobs:
           name: debian-packages
           path: packages
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ needs.facts.outputs.go-version }}
           cache: false
@@ -934,9 +942,9 @@ jobs:
     env:
       VERSION: ${{ needs.facts.outputs.version }}
       RELEASE_KIND: ${{ needs.facts.outputs.release-kind }}
+      RELEASE_GENERATION: ${{ needs.facts.outputs.release-generation }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
 
       - name: Download packages
         uses: actions/download-artifact@v4
@@ -945,10 +953,6 @@ jobs:
           path: packages
 
       # Decide whether packages should go to stable, candidate or nightly
-      - name: Prepare packages
-        run: |
-          mkdir -p packages/syncthing/$RELEASE_KIND
-          mv packages/*.deb packages/syncthing/$RELEASE_KIND
 
       - name: Pull archive
         uses: docker://docker.io/rclone/rclone:latest
@@ -961,15 +965,17 @@ jobs:
           RCLONE_CONFIG_OBJSTORE_REGION: ${{ secrets.S3_REGION }}
           RCLONE_CONFIG_OBJSTORE_ACL: public-read
         with:
-          args: sync objstore:apt/dists dists
+          args: sync objstore:apt apt
 
+      - name: Prepare packages
+        run: |
+          sudo chown -R $(id -u) apt/pool
+          mv packages/*.deb apt/pool
       - name: Update archive
         uses: docker://ghcr.io/kastelo/ezapt:latest
         with:
           args:
-            publish
-            --add packages
-            --dists dists
+            publish --root apt
         env:
           EZAPT_KEYRING_BASE64: ${{ secrets.APT_GPG_KEYRING_BASE64 }}
 
@@ -984,7 +990,7 @@ jobs:
           RCLONE_CONFIG_OBJSTORE_REGION: ${{ secrets.S3_REGION }}
           RCLONE_CONFIG_OBJSTORE_ACL: public-read
         with:
-          args: sync -v --no-update-modtime dists objstore:apt/dists
+          args: sync -v --no-update-modtime apt objstore:apt
 
   #
   # Build and push (except for PRs) to GHCR.
@@ -1019,9 +1025,9 @@ jobs:
             dockerfile: Dockerfile.stdiscosrv
             image: discosrv
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ needs.facts.outputs.go-version }}
           cache: false
@@ -1038,15 +1044,15 @@ jobs:
       - name: Build binaries (CGO)
         run: |
           # amd64
-          go run build.go -goos linux -goarch amd64 -tags "${{env.TAGS}}" -cc "zig cc -target x86_64-linux-musl" -no-upgrade build ${{ matrix.pkg }}
+          go run build.go -goos linux -goarch amd64 -tags "${{env.TAGS_LINUX}}" -cc "zig cc -target x86_64-linux-musl" -no-upgrade build ${{ matrix.pkg }}
           mv ${{ matrix.pkg }} ${{ matrix.pkg }}-linux-amd64
 
           # arm64
-          go run build.go -goos linux -goarch arm64 -tags "${{env.TAGS}}" -cc "zig cc -target aarch64-linux-musl" -no-upgrade build ${{ matrix.pkg }}
+          go run build.go -goos linux -goarch arm64 -tags "${{env.TAGS_LINUX}}" -cc "zig cc -target aarch64-linux-musl" -no-upgrade build ${{ matrix.pkg }}
           mv ${{ matrix.pkg }} ${{ matrix.pkg }}-linux-arm64
 
           # arm
-          go run build.go -goos linux -goarch arm -tags "${{env.TAGS}}" -cc "zig cc -target arm-linux-musleabi -mcpu=arm1136j_s" -no-upgrade build ${{ matrix.pkg }}
+          go run build.go -goos linux -goarch arm -tags "${{env.TAGS_LINUX}}" -cc "zig cc -target arm-linux-musleabi -mcpu=arm1136j_s" -no-upgrade build ${{ matrix.pkg }}
           mv ${{ matrix.pkg }} ${{ matrix.pkg }}-linux-arm
         env:
           CGO_ENABLED: "1"
@@ -1115,7 +1121,7 @@ jobs:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Sync images
         uses: docker://docker.io/regclient/regsync:latest
         with:
@@ -1134,9 +1140,9 @@ jobs:
     needs:
       - facts
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ needs.facts.outputs.go-version }}
           cache: false
@@ -1157,8 +1163,8 @@ jobs:
     # if: github.event_name == 'pull_request'
     if: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: 'stable'
 
@@ -1179,8 +1185,8 @@ jobs:
     if: false
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: 'stable'
 
