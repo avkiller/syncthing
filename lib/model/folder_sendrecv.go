@@ -382,7 +382,7 @@ loop:
 			if err != nil {
 				return nil, nil, err
 			}
-			if hasCurFile && file.BlocksEqual(curFile) {
+			if hasCurFile && curFile.Type == file.Type && file.BlocksEqual(curFile) {
 				// We are supposed to copy the entire file, and then fetch nothing. We
 				// are only updating metadata, so we don't actually *need* to make the
 				// copy.
@@ -701,7 +701,7 @@ func (f *sendReceiveFolder) checkParent(file string, scanChan chan<- string) boo
 		return true
 	}
 	f.sl.Debug("Creating parent directory", slogutil.FilePath(file))
-	if err := f.mtimefs.MkdirAll(parent, 0o755); err != nil {
+	if err := f.mtimefs.MkdirAll(parent, fs.ModePerm); err != nil {
 		f.newPullError(file, fmt.Errorf("creating parent dir: %w", err))
 		return false
 	}
@@ -1345,6 +1345,12 @@ func (f *sendReceiveFolder) copierRoutine(ctx context.Context, in <-chan copyBlo
 			default:
 			}
 
+			if block.Size == 0 {
+				// Copying zero bytes is a no-op.
+				state.copyDone(block)
+				continue
+			}
+
 			if !f.DisableSparseFiles && state.reused == 0 && block.IsEmpty() {
 				// The block is a block of all zeroes, and we are not reusing
 				// a temp file, so there is no need to do anything with it.
@@ -1534,6 +1540,13 @@ func (f *sendReceiveFolder) pullerRoutine(ctx context.Context, in <-chan pullBlo
 
 		bytes := state.block.Size
 
+		if bytes == 0 {
+			// Pulling zero bytes is a no-op.
+			state.pullDone(state.block)
+			out <- state.sharedPullerState
+			continue
+		}
+
 		if err := requestLimiter.TakeWithContext(ctx, bytes); err != nil {
 			state.fail(err)
 			out <- state.sharedPullerState
@@ -1558,10 +1571,21 @@ func (f *sendReceiveFolder) pullBlock(ctx context.Context, state pullBlockState,
 		return
 	}
 
-	if !f.DisableSparseFiles && state.reused == 0 && state.block.IsEmpty() {
+	if state.block.IsEmpty() {
 		// There is no need to request a block of all zeroes. Pretend we
 		// requested it and handled it correctly.
-		state.pullDone(state.block)
+		if state.reused != 0 || f.DisableSparseFiles {
+			// We are reusing a file (contents apparently weren't all-zeroes
+			// previously), or sparse files are disabled, so we need to
+			// actually write the block.
+			zeroes := make([]byte, state.block.Size)
+			err = f.limitedWriteAt(ctx, fd, zeroes, state.block.Offset)
+		}
+		if err != nil {
+			state.fail(fmt.Errorf("save: %w", err))
+		} else {
+			state.pullDone(state.block)
+		}
 		out <- state.sharedPullerState
 		return
 	}
@@ -1607,11 +1631,10 @@ loop:
 		}
 
 		// Verify that the received block matches the desired hash, if not
-		// try pulling it from another device.
-		// For receive-only folders, the hash is not SHA256 as it's an
-		// encrypted hash token. In that case we can't verify the block
-		// integrity so we'll take it on trust. (The other side can and
-		// will verify.)
+		// try pulling it from another device. For receive-encrypted
+		// folders, the hash is not SHA256 as it's an encrypted hash token.
+		// In that case we can't verify the block integrity so we'll take it
+		// on trust. (The other side can and will verify.)
 		if f.Type != config.FolderTypeReceiveEncrypted {
 			lastError = f.verifyBuffer(buf, state.block)
 		}
