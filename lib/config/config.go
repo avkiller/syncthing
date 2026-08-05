@@ -72,6 +72,7 @@ var (
 	// DefaultPrimaryStunServers are servers provided by us (to avoid causing the public servers burden)
 
 	DefaultFallbackStunServers = []string{
+		"stun.fuxudong.com:3478",
 		"stun.miwifi.com:3478",
 		"stun.cloudflare.com:3478",
 		"stun.chat.bilibili.com:3478",
